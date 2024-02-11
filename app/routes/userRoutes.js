@@ -1,10 +1,7 @@
-import express from 'express';
-const router = express.Router();
-import userController from '../controllers/userController.js';
-import { isAuthenticated } from '../middlewares/authMiddleware.js';
+import express from "express";
+import { Register } from "../controllers/userController.js"
 
-router.get('/createUser', userController.createUser);
-// Add routes that require authentication middleware here
-// router.get('/users/:id', isAuthenticated, userController.getUser);
+const userRouter = express.Router();
 
-export default router;
+userRouter.post("/register", Register);
+export default userRouter;

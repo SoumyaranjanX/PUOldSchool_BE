@@ -1,15 +1,34 @@
-import UserModel from '../models/userModel.js';
+import { ApiError } from "../errorHander/ApiError.js";
+import { ApiResponse } from "../errorHander/ApiResponse.js"
+import { asyncHandler } from "../errorHander/asyncHandler.js"
+import { User } from "../models/userModel.js";
 
-const createUser = async (req, res) => {
-    try {
-        const { username, email, password } = req.body;
-        const user = await UserModel.create({ username, email, password });
-        res.status(201).json({ user });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+
+
+
+export const Register = asyncHandler(async (req, res) => {
+
+    const { name, email, password, deparment, phone } = req.body;
+    console.log(`${name} ${email} ${password}`)
+    if (!name || !email || !password || !deparment || !phone === "") {
+        throw new ApiError(400, "Please fill all field !!");
     }
-};
 
-// Other controller methods like getUser, updateUser, deleteUser, etc. can be added here
+    const existedUser = await User.findOne({ email })
 
-export default createUser;
+    if (existedUser) {
+        throw new ApiError(400, "Email already exist !!")
+    }
+
+    const user = await User.create({
+        name,
+        email,
+        password,
+        deparment,
+        phone
+    })
+    res.status(200).json(
+        new ApiResponse(200, user, "User registered Successfully")
+    )
+})
+

@@ -2,10 +2,10 @@
   "name": "puoldschool_be",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon server.js"
   },
   "author": "",
   "license": "ISC",

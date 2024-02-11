@@ -1,3 +1,4 @@
+
 const isAuthenticated = (req, res, next) => {
     // Authentication logic goes here
     // For demonstration purposes, let's assume user is authenticated
@@ -9,4 +10,4 @@ const isAuthenticated = (req, res, next) => {
     }
 };
 
-module.exports = { isAuthenticated };
+export { isAuthenticated };

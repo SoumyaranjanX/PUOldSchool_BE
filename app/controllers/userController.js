@@ -24,18 +24,18 @@ const generateAccessAndRefereshTokens = async (userId) => {
 
 
 
-export const Register = asyncHandler(async (req, res) => {
+export const Register = asyncHandler(async (req, res, next) => {
 
     const { name, email, password, deparment, phone } = req.body;
 
     if (!name || !email || !password || !deparment || !phone === "") {
-        throw new ApiError(400, "Please fill all field !!");
+        return next(new ApiError("Please fill all field !!", 400));
     }
 
     const existedUser = await User.findOne({ email })
 
     if (existedUser) {
-        throw new ApiError(400, "Email already exist !!")
+        return next(new ApiError("Email already exist !!!", 400));
     }
 
     const user = await User.create({
@@ -51,23 +51,24 @@ export const Register = asyncHandler(async (req, res) => {
 })
 
 
-export const Login = asyncHandler(async (req, res) => {
+export const Login = asyncHandler(async (req, res, next) => {
 
     const { email, password } = req.body;
 
     if (!email || !password === "") {
-        throw new ApiError(400, "Please fill all field !!");
+        return next(new ApiError("Please fill all field !!", 400));
+
     }
 
     const user = await User.findOne({ email }).select("+password")
     console.log(user)
 
     if (!user) {
-        throw new ApiError(400, "Invalid eamil or password !!");
+        return next(new ApiError("Invalid eamil or password !!", 400));
     }
     const isPasswordMatched = await user.comparePassword(password);
     if (!isPasswordMatched) {
-        throw new ApiError(400, "Invalid eamil or password !!");
+        return next(new ApiError("Invalid eamil or password !!", 400));
     }
     console.log(`${user._id}`)
     const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id)

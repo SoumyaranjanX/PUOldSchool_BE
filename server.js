@@ -3,6 +3,7 @@ import dbConnect from './app/utils/dbConnect.js';
 import router from './app/config/routes.js';
 import dotenv from "dotenv";
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 
 dotenv.config({
     path: './.env'
@@ -11,6 +12,7 @@ dotenv.config({
 const app = express();
 app.use(express.json());
 app.use(morgan('dev'));
+app.use(cookieParser())
 const port = process.env.PORT || 8000;
 
 app.get('/ping', (req, res) => {

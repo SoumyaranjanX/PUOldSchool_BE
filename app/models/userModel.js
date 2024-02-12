@@ -30,6 +30,9 @@ const userSchema = new mongoose.Schema({
         required: true,
         maxLength: [12, "Please Provide Valide no"],
         minLength: [10, "Please Provide Valide no"]
+    },
+    refreshToken: {
+        type: String
     }
 })
 
@@ -59,6 +62,7 @@ userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this._id,
+            email: this.email
 
         },
         process.env.REFRESH_TOKEN_SECRET,

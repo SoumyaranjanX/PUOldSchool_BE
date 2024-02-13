@@ -2,8 +2,8 @@ import { ApiError } from "../errorHander/ApiError.js";
 import { ApiResponse } from "../errorHander/ApiResponse.js"
 import { asyncHandler } from "../errorHander/asyncHandler.js"
 import { User } from "../models/userModel.js";
-
-
+import { sendMail } from "../utils/sendEmail.js"
+import crypto from "crypto"
 
 const generateAccessAndRefereshTokens = async (userId) => {
     try {
@@ -21,9 +21,6 @@ const generateAccessAndRefereshTokens = async (userId) => {
         throw new ApiError(500, "Something went wrong while generating referesh and access token")
     }
 }
-
-
-
 export const Register = asyncHandler(async (req, res, next) => {
 
     const { name, email, password, deparment, phone } = req.body;
@@ -49,7 +46,6 @@ export const Register = asyncHandler(async (req, res, next) => {
         new ApiResponse(200, user, "User registered Successfully")
     )
 })
-
 
 export const Login = asyncHandler(async (req, res, next) => {
 
@@ -99,7 +95,7 @@ export const Login = asyncHandler(async (req, res, next) => {
 
 
 
-export const logout = asyncHandler(async (req, res) => {
+export const Logout = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         console.log(req.user),
@@ -124,6 +120,66 @@ export const logout = asyncHandler(async (req, res) => {
         .clearCookie("refreshToken", options)
         .json(new ApiResponse(200, {}, "User logged Out"))
 })
+
+// forget password 
+export const forgotPassword = asyncHandler(async (req, res, next) => {
+
+    const { email } = req.body
+    const user = await User.findOne({ email })
+    if (!user) {
+        return next(new ApiError("User Not Found !!!", 400))
+    }
+
+    const resetToken = await user.getResetToken();
+    await user.save();
+    const url = `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`
+
+    const message = `Click on the link to reset the password  ${url} if you have not 
+    request than please ignor `
+
+    sendMail(user.email, "Reset Password", message)
+
+
+
+    res.status(200).json(
+        // new ApiResponse(200, user.email, "RestToken has been sent Successfully !!!")
+        {
+            success: true,
+            message: `RestToken has been sent at this email ${user.email} Successfully !!!`
+        }
+    )
+})
+
+
+
+export const resetPassword = asyncHandler(async (req, res, next) => {
+
+    const { token } = req.params;
+
+    const resetPasswordToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpire: {
+            $gt: Date.now()
+        }
+    })
+
+    if (!user) {
+        return next(new ApiError("Try Again", 400))
+    }
+
+    user.password = req.body.password;
+
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save()
+    res.status(200).json(
+        new ApiResponse(200, "Password Change Successfully !!!")
+
+    )
+})
+
 
 
 

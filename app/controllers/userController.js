@@ -23,9 +23,9 @@ const generateAccessAndRefereshTokens = async (userId) => {
 }
 export const Register = asyncHandler(async (req, res, next) => {
 
-    const { name, email, password, deparment, phone } = req.body;
-
-    if (!name || !email || !password || !deparment || !phone === "") {
+    const { name, email, password, department, phone } = req.body;
+    console.log(name, email, password, department, phone)
+    if (!name || !email || !password || !department || !phone === "") {
         return next(new ApiError("Please fill all field !!", 400));
     }
 
@@ -39,7 +39,7 @@ export const Register = asyncHandler(async (req, res, next) => {
         name,
         email,
         password,
-        deparment,
+        department,
         phone
     })
     res.status(200).json(
@@ -57,7 +57,6 @@ export const Login = asyncHandler(async (req, res, next) => {
     }
 
     const user = await User.findOne({ email }).select("+password")
-    console.log(user)
 
     if (!user) {
         return next(new ApiError("Invalid eamil or password !!", 400));
@@ -66,7 +65,7 @@ export const Login = asyncHandler(async (req, res, next) => {
     if (!isPasswordMatched) {
         return next(new ApiError("Invalid eamil or password !!", 400));
     }
-    console.log(`${user._id}`)
+
     const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id)
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")

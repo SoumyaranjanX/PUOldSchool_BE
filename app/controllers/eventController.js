@@ -1,4 +1,4 @@
-import { Event } from '../models/eventModel.js';  // Import your Event model
+import { Event } from '../models/eventModel.js';
 import { asyncHandler } from "../errorHander/asyncHandler.js";
 import { ApiError } from "../errorHander/ApiError.js";
 import { ApiResponse } from "../errorHander/ApiResponse.js";
@@ -36,7 +36,7 @@ export const createEvent = asyncHandler(async (req, res, next) => {
         // Save the event to the database
         const savedEvent = await event.save();
 
-        return res.status(201).json(
+        return res.status(200).json(
             new ApiResponse(200, savedEvent, "Event Created Successfully.")
         );
     } catch (error) {

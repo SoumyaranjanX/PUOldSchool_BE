@@ -1,23 +1,46 @@
 import { Message } from "../models/messageModel.js";
+import { getLoggedInUserId } from "../utils/functions.js";
 
 // Function to create and save a new message
-export const createMessage = async (req,res) => {
+const createMessage = async (data) => {
     try {
-       
-          const {sender, message, messageType} = req.body
-           const newMessage = new Message({
+        const sender = await getLoggedInUserId();
+        const { message, selectedType, messageTime } = data
+        const newMessage = new Message({
             sender: sender,
             message: message,
-            messageType:messageType
+            messageType: selectedType,
+            messageTime: messageTime
         });
-        const savedMessage = await newMessage.save();
-        res.status(200).json({
-            message:"message save sucessfully"
-        })
-        return savedMessage;
+        newMessage.save();
     } catch (error) {
-        // Handle error
         console.error('Error saving message:', error);
-        throw error; // Rethrow the error for the calling function to handle
+        throw error;
     }
 };
+
+const fetchMessages = async (req, res) => {
+    const pageNumber = req.query.pageNumber
+    console.log(pageNumber)
+    const pageSize = 10;
+    const skip = (pageNumber - 1) * pageSize;
+    
+    try {
+        // Assuming you have a Message model
+        const messages = await Message.find()
+            .sort({ messageTime: -1 })
+            .skip(skip)
+            .limit(pageSize); 
+        return res.status(200).send(messages);
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        throw error;
+    }
+};
+
+
+
+export {
+    createMessage,
+    fetchMessages
+}

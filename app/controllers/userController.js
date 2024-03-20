@@ -4,6 +4,12 @@ import { asyncHandler } from "../errorHander/asyncHandler.js"
 import { User } from "../models/userModel.js";
 import { sendMail } from "../utils/sendEmail.js"
 import crypto from "crypto"
+import path from "path";
+import fs from "fs"
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const generateAccessAndRefereshTokens = async (userId) => {
     try {
@@ -18,14 +24,17 @@ const generateAccessAndRefereshTokens = async (userId) => {
 
 
     } catch (error) {
-        throw new ApiError(500, "Something went wrong while generating referesh and access token")
+        console.log("Something went wrong while generating referesh and access token")
+        return false, false;
     }
 }
+
+// authentication
 export const Register = asyncHandler(async (req, res, next) => {
 
-    const { name, email, password, department, phone } = req.body;
-    console.log(name, email, password, department, phone)
-    if (!name || !email || !password || !department || !phone === "") {
+    const { name, regNo, department, email, password } = req.body;
+
+    if (!name || !email || !password || !department || !regNo) {
         return next(new ApiError("Please fill all field !!", 400));
     }
 
@@ -37,10 +46,10 @@ export const Register = asyncHandler(async (req, res, next) => {
 
     const user = await User.create({
         name,
+        regNo,
         email,
         password,
-        department,
-        phone
+        department
     })
     res.status(200).json(
         new ApiResponse(200, user, "User registered Successfully")
@@ -53,20 +62,23 @@ export const Login = asyncHandler(async (req, res, next) => {
 
     if (!email || !password === "") {
         return next(new ApiError("Please fill all field !!", 400));
-
     }
 
     const user = await User.findOne({ email }).select("+password")
 
     if (!user) {
-        return next(new ApiError("Invalid eamil or password !!", 400));
+        return next(new ApiError("Invalid email or password !!", 400));
     }
     const isPasswordMatched = await user.comparePassword(password);
     if (!isPasswordMatched) {
-        return next(new ApiError("Invalid eamil or password !!", 400));
+        return next(new ApiError("Invalid email or password !!", 400));
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id)
+
+    if(!accessToken || !refreshToken){
+        return next(new ApiError("Internal Server Error !!", 500));
+    }
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
@@ -91,13 +103,9 @@ export const Login = asyncHandler(async (req, res, next) => {
 
 })
 
-
-
-
 export const Logout = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
-        console.log(req.user),
         {
             $unset: {
                 refreshToken: 1 // this removes the field from document
@@ -138,8 +146,6 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
 
     sendMail(user.email, "Reset Password", message)
 
-
-
     res.status(200).json(
         // new ApiResponse(200, user.email, "RestToken has been sent Successfully !!!")
         {
@@ -148,8 +154,6 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
         }
     )
 })
-
-
 
 export const resetPassword = asyncHandler(async (req, res, next) => {
 
@@ -179,6 +183,104 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
     )
 })
 
+// data management
+export const getUser = asyncHandler(async (req, res, next) => {
+    const user = req.user
+    if(!user){
+        return next(new ApiError("User Not Found !!", 400));
+    }
 
+    try{
 
+        const imageUrl = user.imageUrl?user.imageUrl:'/public/assets/profileImages/default.webp' //default
+        const host = req.get('host');
+        const protocol = req.protocol;
+        const finalImageUrl = `${protocol}://${host}${imageUrl}`;
 
+        user.imageUrl = finalImageUrl
+
+        return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                user
+            )
+        )
+    }
+    catch (error) {
+        console.log(error)
+    }
+})
+
+export const changeProfileImage = asyncHandler(async (req, res, next) => {
+    const user = req.user
+    if(!user){
+        return next(new ApiError("User Not Found !!", 400));
+    }
+
+    if (!req.file) {
+        return next(new ApiError("No file uploaded", 400));
+    }
+
+    try{
+
+        const image = req.file;
+
+        const imagePath = path.join(__dirname, `../../public/assets/profileImages/${user._id}${path.extname(image.originalname)}`);
+        fs.renameSync(image.path, imagePath);
+
+        user.imageUrl = `/public/assets/profileImages/${user._id}${path.extname(image.originalname)}`;
+        await user.save();
+
+        const host = req.get('host');
+        const finalImageUrl = `http://${host}${user.imageUrl}`;
+
+        // console.log(image)
+        return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                finalImageUrl
+            )
+        )
+    }
+    catch(error){
+        console.log(error)
+    }
+
+})
+export const updatePersonalDetails = asyncHandler(async (req, res, next) => {
+    const user = req.user;
+    if (!user) {
+        return next(new ApiError("User Not Found !!", 400));
+    }
+
+    try {
+        const { hostel, department, libraryId, dateOfBirth, bloodGroup, address } = req.body;
+
+        console.log(hostel)
+
+        // Update user's personal details if available
+        if (hostel !== 'N/A') user.hostel = hostel;
+        if (department !== 'N/A') user.department = department;
+        if (libraryId !== 'N/A') user.libraryId = libraryId;
+        if (dateOfBirth !== 'N/A') user.dateOfBirth = dateOfBirth;
+        if (bloodGroup !== 'N/A') user.bloodGroup = bloodGroup;
+        if (address !== 'N/A') user.address = address;
+
+        // Save the updated user
+        await user.save();
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                'Profile Updated'
+            )
+        );
+    } catch (error) {
+        console.log(error);
+        return next(new ApiError("Failed to update profile", 500));
+    }
+});

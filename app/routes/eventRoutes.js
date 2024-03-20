@@ -1,11 +1,18 @@
 import express from "express";
-import { createEvent, deleteEvent, getEvent, updateEvent } from "../controllers/eventController.js";
+import { createEvent, deleteEvent, updateEvent, getEvents } from "../controllers/eventController.js";
 
 import { verifyJWT } from "../middlewares/authMiddleware.js";
+import multer from "multer";
+
+const upload = multer({
+    dest: 'temp/',
+});
+
 const eventRouter = express.Router();
 
-eventRouter.post("/createevent", verifyJWT, createEvent);
-eventRouter.post("/deleteevent/:id", verifyJWT, deleteEvent);
-eventRouter.put("/updateevent/:id", verifyJWT, updateEvent);
-eventRouter.get("/getevent/:id", verifyJWT, getEvent);
+
+eventRouter.post("/createEvent", verifyJWT, upload.single('image'), createEvent);
+eventRouter.post("/deleteEvent/:id", verifyJWT, deleteEvent);
+eventRouter.put("/updateEvent/:id", verifyJWT, updateEvent);
+eventRouter.get("/getEvents", verifyJWT, getEvents);
 export default eventRouter;

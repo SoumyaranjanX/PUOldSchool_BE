@@ -13,17 +13,19 @@ const eventSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        enum: ["Sport Events", "Cultural Events", "Social Events"]
-
+        enum: ["Sport Events", "Cultural Events", "Social Events", "Educational Events"]
     },
     location: {
         type: String,
         required: [true, "Please Provide the location"]
     },
-    FormDate: {
+    eventDetails:{
+        type:String
+    },
+    fromDate: {
         type: Date
     },
-    FormTime: {
+    fromTime: {
         type: String
     },
     toDate: {
@@ -34,7 +36,12 @@ const eventSchema = new mongoose.Schema({
     },
     imageUrl: {
         type: String
-    }
+    },
+    isApproved: {
+        type: Boolean,
+        default: false
+    },
+    
 
 })
 

@@ -8,9 +8,22 @@ const userSchema = new mongoose.Schema({
 
     name: {
         type: String,
-        required: [true, "Please enter the Name !!"],
-        minLength: [3, "Provide At least 3 character !!"],
-        validate: [validator.isAlpha, "name must cantain alphabet !!"]
+        required: [true, "Please enter your full name."],
+        validate: {
+            validator: function(value) {
+                return /^[a-zA-Z\s]*$/.test(value);
+            },
+            message: "Name must contain only alphabets and spaces."
+        },
+        minLength: [3, "Please provide at least 3 characters for your name."]
+    },
+    regNo: {
+        type: String,
+        required: [true, "Please enter the PU Registration Number !!"]
+    },
+    department: {
+        type: String,
+        required: true
     },
     email: {
         type: String,
@@ -22,15 +35,28 @@ const userSchema = new mongoose.Schema({
         required: [true, "Please enter the Password !!"],
         minLength: [6, "Password must contain at least 6 characters !!"],
     },
-    department: {
-        type: String,
-        required: true
-    },
     phone: {
         type: Number,
-        required: true,
         maxLength: [12, "Please Provide Valide no"],
         minLength: [10, "Please Provide Valide no"]
+    },
+    imageUrl: {
+        type: String
+    },
+    hostel: {
+        type: String
+    },
+    libraryId: {
+        type: String
+    },
+    dateOfBirth: {
+        type: String
+    },
+    bloodGroup: {
+        type: String
+    },
+    address: {
+        type: String
     },
     refreshToken: {
         type: String

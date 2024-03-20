@@ -3,6 +3,7 @@ import { Server } from "socket.io";
 import http from "http"
 import cors from "cors"
 import {socketRouter} from "./app/config/routes.js"
+import { createMessage } from "./app/controllers/chatControoler.js";
 
 const socketServer = http.createServer(app)
 const port = process.env.SOCKETPORT || 8001;
@@ -13,13 +14,14 @@ const io = new Server(socketServer, {
     },
 })
 
-app.use("/api/v1",socketRouter)
+app.use("/api",socketRouter)
 
 io.on("connection", (socket) => {
     console.log(`User Connected: ${socket.id}`)
 
     socket.on("send_message", (data) => {
         console.log(data)
+        createMessage(data)
         socket.broadcast.emit("receive_message", data)
     })
 })

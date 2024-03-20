@@ -12,9 +12,12 @@ const MessageSchema = new mongoose.Schema({
     },
     messageType: {
         type: String,
-        enum: ['body system', 'medical', 'information',"buy sell"]
+        enum: ['Hey Buddy', 'Lost & Found', 'Information', "Requirement & Fulfilment"]
+    },
+    messageTime: {
+        type: Date
     }
 
-},{timestamps:true});
+});
 
 export const Message = new mongoose.model("Message",MessageSchema)

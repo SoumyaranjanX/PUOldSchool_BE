@@ -1,6 +1,6 @@
 import express from 'express';
 import dbConnect from './app/utils/dbConnect.js';
-import router from './app/config/routes.js';
+import {router} from './app/config/routes.js';
 import dotenv from "dotenv";
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
@@ -33,7 +33,7 @@ dbConnect();
 
 app.use(errorMiddleware)
 
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
     console.log(`Server started: http://localhost:${port}`);
 });
 

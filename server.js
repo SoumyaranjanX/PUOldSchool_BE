@@ -8,8 +8,9 @@ import { errorMiddleware } from "./app/errorHander/ApiError.js"
 import { fileURLToPath } from 'url';
 import path from "path";
 import cors from "cors"
-
-
+import http from "http"
+import { Server } from "socket.io";
+import { createMessage } from "./app/controllers/chatControoler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,8 +36,26 @@ dbConnect();
 
 app.use(errorMiddleware);
 
-app.listen(port, "0.0.0.0", () => {
-    console.log(`Server started: http://localhost:${port}`);
-});
+const server = http.createServer(app)
 
-export default app;
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+    },
+})
+
+io.on("connection", (socket) => {
+    console.log(`User Connected: ${socket.id}`)
+
+    socket.on("send_message", (data) => {
+        console.log(data)
+        createMessage(data)
+        socket.broadcast.emit("receive_message", data)
+    })
+})
+
+server.listen(port, "0.0.0.0", () => {
+    console.log(`Socket Server Started at: http://localhost:${port}`)
+})
+

@@ -13,10 +13,8 @@ router.use('/volt', voltRouter);
 router.use('/event', eventRouter);
 router.use('/bus', busRouter);
 router.use('/notice', noticeRouter);
-const socketRouter = express.Router();
-socketRouter.use('/chat', chatRoutes);
+router.use('/chat', chatRoutes);
 
 export {
-    router,
-    socketRouter
+    router
 };

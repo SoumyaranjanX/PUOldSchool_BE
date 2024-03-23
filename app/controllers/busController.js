@@ -27,7 +27,7 @@ export const insertDummy = async (req, res) => {
 
 export const getBusTimings = async (req, res) => {
     try {
-        const { stoppage, direction } = req.body;
+        const { stoppage } = req.body;
 
         // Find bus timings based on stoppage and direction with case-insensitive comparison
         const result = await Bus.findOne({
@@ -36,18 +36,10 @@ export const getBusTimings = async (req, res) => {
 
         if (result) {
             let response = {
-                stopName: result.stopName,
-                timings: [],
+
+                towardSJ: result.timings.towardSJ,
+                towardLibrary: result.timings.towardLibrary
             };
-
-            // Include timings based on the provided direction
-            if (direction === "towardSJ") {
-                response.timings = result.timings.towardSJ;
-            } else if (direction === "towardLibrary") {
-                response.timings = result.timings.towardLibrary;
-            }
-
-
             return res.status(200).json(response);
         } else {
             console.log('Stoppage not found:', stoppage);

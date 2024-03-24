@@ -13,6 +13,6 @@ const eventRouter = express.Router();
 
 eventRouter.post("/createEvent", verifyJWT, upload.single('image'), createEvent);
 eventRouter.post("/deleteEvent/:id", verifyJWT, deleteEvent);
-eventRouter.put("/updateEvent/:id", verifyJWT, updateEvent);
+eventRouter.put("/updateEvent/:id", updateEvent);
 eventRouter.get("/getEvents", getEvents);
 export default eventRouter;

@@ -24,7 +24,8 @@ export const createEvent = asyncHandler(async (req, res, next) => {
             fromTime,
             toDate,
             toTime,
-            eventDetails
+            eventDetails,
+            isApproved
         } = req.body;
         if (!eventName || !category || !location || !fromDate || !fromTime || !toDate) {
             return next(new ApiError("Volt Type and image are required.", 400));
@@ -111,15 +112,15 @@ export const updateEvent = asyncHandler(async (req, res, next) => {
             return next(new ApiError("Event not found", 404));
         }
         // Update the event
-        existingEvent.eventName = eventName;
-        existingEvent.category = category;
-        existingEvent.location = location;
-        existingEvent.fromDate = fromDate;
-        existingEvent.fromTime = fromTime;
-        existingEvent.toDate = toDate;
-        existingEvent.toTime = toTime;
-        existingEvent.imageUrl = imageUrl;
-        existingEvent.isApproved = isApproved
+        existingEvent.eventName = eventName || existingEvent.eventName;
+        existingEvent.category = category || existingEvent.category;
+        existingEvent.location = location || existingEvent.location;
+        existingEvent.fromDate = fromDate || existingEvent.fromDate;
+        existingEvent.fromTime = fromTime || existingEvent.fromTime;
+        existingEvent.toDate = toDate || existingEvent.toDate;
+        existingEvent.toTime = toTime || existingEvent.toTime;
+        existingEvent.imageUrl = imageUrl || existingEvent.imageUrl;
+        existingEvent.isApproved = isApproved !== undefined ? isApproved : existingEvent.isApproved;
 
         const updatedEvent = await existingEvent.save();
 

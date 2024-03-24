@@ -138,7 +138,7 @@ export const getEvents = asyncHandler(async (req, res, next) => {
 
     try {
 
-        const events = await Event.find({ isApproved: false })// Adjust the population fields as needed
+        const events = await Event.find()// Adjust the population fields as needed
 
         if (!events) {
             return next(new ApiError('Event not found', 404));

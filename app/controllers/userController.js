@@ -284,3 +284,17 @@ export const updatePersonalDetails = asyncHandler(async (req, res, next) => {
         return next(new ApiError("Failed to update profile", 500));
     }
 });
+
+
+// data management
+export const getUserProfileImage = async (userId) => {
+    try{
+        const user = await User.findById(userId)
+
+        const imageUrl = user.imageUrl?user.imageUrl:'/public/assets/profileImages/default.webp' //default
+        return imageUrl;
+    }
+    catch (error) {
+        console.log(error)
+    }
+}

@@ -100,7 +100,9 @@ export const updateEvent = asyncHandler(async (req, res, next) => {
             fromTime,
             toDate,
             toTime,
-            imageUrl
+            imageUrl,
+            isApproved
+
         } = req.body;
 
         // Check if the event exists
@@ -117,6 +119,7 @@ export const updateEvent = asyncHandler(async (req, res, next) => {
         existingEvent.toDate = toDate;
         existingEvent.toTime = toTime;
         existingEvent.imageUrl = imageUrl;
+        existingEvent.isApproved = isApproved
 
         const updatedEvent = await existingEvent.save();
 
@@ -130,11 +133,11 @@ export const updateEvent = asyncHandler(async (req, res, next) => {
 });
 
 export const getEvents = asyncHandler(async (req, res, next) => {
-    
-   
+
+
     try {
-        
-        const events = await Event.find({isApproved:false})// Adjust the population fields as needed
+
+        const events = await Event.find({ isApproved: false })// Adjust the population fields as needed
 
         if (!events) {
             return next(new ApiError('Event not found', 404));

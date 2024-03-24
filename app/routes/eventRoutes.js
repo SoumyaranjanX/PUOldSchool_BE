@@ -11,8 +11,8 @@ const upload = multer({
 const eventRouter = express.Router();
 
 
-eventRouter.post("/createEvent", upload.single('image'), createEvent);
+eventRouter.post("/createEvent", verifyJWT, upload.single('image'), createEvent);
 eventRouter.post("/deleteEvent/:id", deleteEvent);
 eventRouter.patch("/updateEvent/:id", updateEvent);
 eventRouter.get("/getEvents", getEvents);
-export default eventRouter;
+export default eventRouter; 

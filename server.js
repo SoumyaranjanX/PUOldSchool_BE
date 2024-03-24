@@ -11,6 +11,9 @@ import cors from "cors"
 import http from "http"
 import { Server } from "socket.io";
 import { createMessage } from "./app/controllers/chatControoler.js";
+import { getLoggedInUserId } from './app/utils/functions.js';
+import jwt from "jsonwebtoken"
+import { getUserProfileImage } from './app/controllers/userController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,9 +51,28 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
     console.log(`User Connected: ${socket.id}`)
 
-    socket.on("send_message", (data) => {
-        console.log(data)
+    socket.on("send_message", async (data) => {
+        const decodedToken = jwt.verify(data.accessToken, process.env.ACCESS_TOKEN_SECRET);
+
+        const userId = decodedToken._id;
+        delete data.accessToken;
+        data.userId = userId
         createMessage(data)
+        delete data.userId;
+
+        const host = socket.handshake.headers.host;
+        // const protocol = socket.handshake.headers.referer.split(':')[0];
+        const protocol = 'http';
+        const image = await getUserProfileImage(userId)
+
+        // console.log(socket)
+        
+        const userProfileImage = `${protocol}://${host}${image}`;
+        data.imageUrl = userProfileImage
+
+        
+        console.log(data)
+
         socket.broadcast.emit("receive_message", data)
     })
 })

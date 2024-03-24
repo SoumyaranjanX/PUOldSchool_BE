@@ -1,4 +1,6 @@
 import { Bus } from "../models/busModel.js";
+import { ApiResponse } from "../errorHander/ApiResponse.js";
+import { ApiError } from "../errorHander/ApiError.js";
 
 export const insertDummy = async (req, res) => {
     try {
@@ -25,7 +27,7 @@ export const insertDummy = async (req, res) => {
 };
 
 
-export const getBusTimings = async (req, res) => {
+export const getBusTimings = async (req, res, next) => {
     try {
         const { stoppage } = req.body;
 
@@ -39,19 +41,26 @@ export const getBusTimings = async (req, res) => {
             "stopName": { $regex: new RegExp(stoppage, 'i') },
         });
 
+
         if (result) {
             let response = {
-
                 towardSJ: result.timings.towardSJ,
                 towardLibrary: result.timings.towardLibrary
             };
-            return res.status(200).json(response);
+            return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    response
+                )
+            )
         } else {
             console.log('Stoppage not found:', stoppage);
-            return res.status(200).json({ message: 'Stoppage not found' });
+            return next(new ApiError("Stoppage not found !!", 200));
         }
     } catch (error) {
         console.error('Error fetching bus timings:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return next(new ApiError("Error fetching bus timings !!", 400));
     }
 };

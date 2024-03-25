@@ -36,7 +36,7 @@ export const getNotice = asyncHandler(async (req, res, next) => {
             return next(new ApiError("Notice does not Exist", 500));
         }
         return res.status(201).json(
-            new ApiResponse(201, "Notice  Retrieved Successfully.")
+            new ApiResponse(201, notice, "Notice  Retrieved Successfully.")
         );
     } catch (error) {
         return next(new ApiError("Failed to create notice: " + error.message, 500));

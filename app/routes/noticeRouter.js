@@ -5,5 +5,5 @@ const noticeRouter = express.Router();
 
 
 noticeRouter.post("/creationnotice", createNotice);
-noticeRouter.post("/getnotice", getNotice);
+noticeRouter.get("/getnotice", getNotice);
 export default noticeRouter;

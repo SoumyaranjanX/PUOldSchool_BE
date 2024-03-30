@@ -8,7 +8,6 @@ export const createNotice = asyncHandler(async (req, res, next) => {
     if (!noticeImage || !title || !shortDec) {
         return next(new ApiError("All fields are required.", 400));
     }
-
     try {
         const notice = await Notice.create({
             title,

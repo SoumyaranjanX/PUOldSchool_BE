@@ -2,9 +2,9 @@ import mongoose, { Schema } from "mongoose";
 
 const noticeSchema = new mongoose.Schema({
 
-   title:{
-      type:String
-   },
+    title: {
+        type: String
+    },
     noticeImage: {
         type: String
 
@@ -14,6 +14,6 @@ const noticeSchema = new mongoose.Schema({
 
     }
 
-},{timestamps:true})
+}, { timestamps: true })
 
 export const Notice = mongoose.model("Notice", noticeSchema)

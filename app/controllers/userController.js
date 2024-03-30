@@ -7,6 +7,16 @@ import crypto from "crypto"
 import path from "path";
 import fs from "fs"
 import { fileURLToPath } from 'url';
+import { S3Client, PutObjectCommand, HeadObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+
+const s3Client = new S3Client({
+    region: 'auto',
+    endpoint: 'https://5aa4c0acb0e25214c16ca695275482a8.r2.cloudflarestorage.com',
+    credentials: {
+      accessKeyId: '047595cdddd6f641d1665c8df6795aee',
+      secretAccessKey: '05e386894068a1329c5a2236b1661c2f46dbc8d0cc81f22d451a2b5f2c0c0ccb',
+    },
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -193,11 +203,11 @@ export const getUser = asyncHandler(async (req, res, next) => {
     try{
 
         const imageUrl = user.imageUrl?user.imageUrl:'/public/assets/profileImages/default.webp' //default
-        const host = req.get('host');
-        const protocol = req.protocol;
-        const finalImageUrl = `${protocol}://${host}${imageUrl}`;
+        // const host = req.get('host');
+        // const protocol = req.protocol;
+        // const finalImageUrl = `${protocol}://${host}${imageUrl}`;
 
-        user.imageUrl = finalImageUrl
+        // user.imageUrl = finalImageUrl
 
         return res
         .status(200)
@@ -214,8 +224,8 @@ export const getUser = asyncHandler(async (req, res, next) => {
 })
 
 export const changeProfileImage = asyncHandler(async (req, res, next) => {
-    const user = req.user
-    if(!user){
+    const user = req.user;
+    if (!user) {
         return next(new ApiError("User Not Found !!", 400));
     }
 
@@ -223,34 +233,55 @@ export const changeProfileImage = asyncHandler(async (req, res, next) => {
         return next(new ApiError("No file uploaded", 400));
     }
 
-    try{
+    try {
+        const file = req.file;
+        const userId = user.id;
+        const fileExtension = path.extname(file.originalname);
 
-        const image = req.file;
+        const uniqueFilename = userId + "-Profile" + fileExtension;
 
-        const imagePath = path.join(__dirname, `../../public/assets/profileImages/${user._id}${path.extname(image.originalname)}`);
-        fs.renameSync(image.path, imagePath);
+        // Check if the file already exists for the user
+        const headParams = {
+            Bucket: 'oldschool',
+            Key: uniqueFilename
+        };
 
-        user.imageUrl = `/public/assets/profileImages/${user._id}${path.extname(image.originalname)}`;
-        await user.save();
+        try {
+            // If the file exists, delete it first before uploading the new one
+            await s3Client.send(new HeadObjectCommand(headParams));
+            await s3Client.send(new DeleteObjectCommand(headParams));
+            console.log("Existing file deleted from S3:", uniqueFilename);
+        } catch (err) {
+            // Ignore error if the file doesn't exist
+        }
 
-        const host = req.get('host');
-        const finalImageUrl = `http://${host}${user.imageUrl}`;
+        const params = {
+            Bucket: 'oldschool',
+            Key: uniqueFilename,
+            Body: fs.createReadStream(file.path)
+        };
 
-        // console.log(image)
-        return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                finalImageUrl
-            )
-        )
+        const data = await s3Client.send(new PutObjectCommand(params));
+        // console.log("Successfully uploaded file to S3:", data);
+
+        user.imageUrl = `https://pub-dc2feb6aa8314296ab626daad5932a49.r2.dev/${uniqueFilename}`
+
+        user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "File uploaded successfully",
+            data: {
+                finalImageUrl: `https://pub-dc2feb6aa8314296ab626daad5932a49.r2.dev/${uniqueFilename}`
+            }
+        });
+    } catch (error) {
+        console.error("Error uploading file to S3:", error);
+        return next(error);
     }
-    catch(error){
-        console.log(error)
-    }
+});
 
-})
+
 export const updatePersonalDetails = asyncHandler(async (req, res, next) => {
     const user = req.user;
     if (!user) {

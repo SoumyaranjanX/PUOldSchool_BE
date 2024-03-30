@@ -7,6 +7,17 @@ import fs from "fs"
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 
+import { S3Client, PutObjectCommand, HeadObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+
+const s3Client = new S3Client({
+    region: 'auto',
+    endpoint: 'https://5aa4c0acb0e25214c16ca695275482a8.r2.cloudflarestorage.com',
+    credentials: {
+      accessKeyId: '047595cdddd6f641d1665c8df6795aee',
+      secretAccessKey: '05e386894068a1329c5a2236b1661c2f46dbc8d0cc81f22d451a2b5f2c0c0ccb',
+    },
+});
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -31,15 +42,20 @@ export const createEvent = asyncHandler(async (req, res, next) => {
             return next(new ApiError("Volt Type and image are required.", 400));
         }
 
-        const image = req.file;
+        const file = req.file;
 
-        const ext = path.extname(image.originalname);
-        const uniqueFilename = uuidv4() + ext;
+        const userId = user.id;
 
-        const imagePath = path.join(__dirname, `../../public/assets/eventImages/${uniqueFilename}`);
-        fs.renameSync(image.path, imagePath);
+        const uniqueFilename = userId + "-Event-" + file.originalname;
 
-        const imageUrl = `/public/assets/eventImages/${uniqueFilename}`;
+        const params = {
+            Bucket: 'oldschool',
+            Key: uniqueFilename,
+            Body: fs.createReadStream(file.path)
+        };
+
+        const data = await s3Client.send(new PutObjectCommand(params));
+        console.log("Successfully uploaded file to S3:", data);
 
         // Create a new Event instance with the provided data
         const event = new Event({
@@ -52,7 +68,7 @@ export const createEvent = asyncHandler(async (req, res, next) => {
             toDate,
             toTime,
             eventDetails,
-            imageUrl: imageUrl
+            imageUrl: `https://pub-dc2feb6aa8314296ab626daad5932a49.r2.dev/${uniqueFilename}`
         });
 
         // Save the event to the database
@@ -143,16 +159,16 @@ export const getEvents = asyncHandler(async (req, res, next) => {
         if (!events) {
             return next(new ApiError('Event not found', 404));
         }
-        const host = req.get('host');
-        const protocol = req.protocol;
-        const eventsWithFinalImageUrl = events.map(event => {
-            const imageUrl = event.imageUrl ? event.imageUrl : '/public/assets/profileImages/default.webp'; // Default image URL
-            const finalImageUrl = `${protocol}://${host}${imageUrl}`;
-            return { ...event.toObject(), imageUrl: finalImageUrl }; // Merge the event object with the finalImageUrl
-        });
+        // const host = req.get('host');
+        // const protocol = req.protocol;
+        // const eventsWithFinalImageUrl = events.map(event => {
+        //     const imageUrl = event.imageUrl ? event.imageUrl : '/public/assets/profileImages/default.webp'; // Default image URL
+        //     const finalImageUrl = `${protocol}://${host}${imageUrl}`;
+        //     return { ...event.toObject(), imageUrl: finalImageUrl }; // Merge the event object with the finalImageUrl
+        // });
 
         return res.status(200).json(
-            new ApiResponse(200, eventsWithFinalImageUrl, 'Event Details Retrieved Successfully.')
+            new ApiResponse(200, events, 'Event Details Retrieved Successfully.')
         );
     } catch (error) {
         console.error(error);

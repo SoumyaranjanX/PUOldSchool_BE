@@ -4,17 +4,15 @@ import { ApiError } from "../errorHander/ApiError.js";
 import { ApiResponse } from "../errorHander/ApiResponse.js";
 
 export const createNotice = asyncHandler(async (req, res, next) => {
-    const { title, shortDec } = req.body;
-    if (!title || !shortDec) {
+    const { title, noticeImage, shortDec } = req.body;
+    if (!noticeImage || !title || !shortDec) {
         return next(new ApiError("All fields are required.", 400));
     }
-
     try {
-        const image = req.file;
         const notice = await Notice.create({
             title,
             shortDec,
-            image
+            noticeImage
         });
 
         if (!notice) {

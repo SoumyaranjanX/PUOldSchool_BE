@@ -5,7 +5,7 @@ const noticeSchema = new mongoose.Schema({
     title: {
         type: String
     },
-    image: {
+    noticeImage: {
         type: String
 
     },

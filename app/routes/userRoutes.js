@@ -1,13 +1,14 @@
 import express from "express";
-import { 
-    Login, 
-    Register, 
-    Logout, 
-    forgotPassword, 
-    resetPassword, 
-    getUser,  
-    changeProfileImage, 
-    updatePersonalDetails } 
+import {
+    Login,
+    Register,
+    Logout,
+    forgotPassword,
+    resetPassword,
+    getUser,
+    changeProfileImage,
+    updatePersonalDetails
+}
     from "../controllers/userController.js"
 import { verifyJWT } from "../middlewares/authMiddleware.js";
 import multer from "multer";
@@ -28,8 +29,8 @@ userRouter.post("/forgetpassword", forgotPassword);
 userRouter.put("/resetpassword/:token", resetPassword);
 
 //
-userRouter.get("/getUser", verifyJWT,  getUser);
+userRouter.get("/getUser", verifyJWT, getUser);
 userRouter.post("/changeProfileImage", verifyJWT, upload.single('image'), changeProfileImage);
-userRouter.post("/updatePersonalDetails", verifyJWT,  updatePersonalDetails);
+userRouter.post("/updatePersonalDetails", verifyJWT, updatePersonalDetails);
 
 export default userRouter;

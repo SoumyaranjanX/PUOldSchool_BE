@@ -29,23 +29,14 @@ export const createNotice = asyncHandler(async (req, res, next) => {
     try {
         const file = req.file;
         const fileExtension = path.extname(file.originalname);
-        const uniqueFilename = "noticeImage" + fileExtension;
 
+        const timestamp = Date.now(); // Get the current timestamp
+        const uniqueFilename = `noticeImage_${timestamp}${fileExtension}`;
         // Check if the file already exists for the user
         const headParams = {
             Bucket: 'oldschool',
             Key: uniqueFilename
         };
-
-        try {
-            // If the file exists, delete it first before uploading the new one
-            await s3Client.send(new HeadObjectCommand(headParams));
-            await s3Client.send(new DeleteObjectCommand(headParams));
-            console.log("Existing file deleted from S3:", uniqueFilename);
-        } catch (err) {
-            // Ignore error if the file doesn't exist
-        }
-
         const params = {
             Bucket: 'oldschool',
             Key: uniqueFilename,

@@ -3,17 +3,8 @@ import { asyncHandler } from "../errorHander/asyncHandler.js";
 import { ApiError } from "../errorHander/ApiError.js";
 import { ApiResponse } from "../errorHander/ApiResponse.js";
 import path from 'path';
-import fs from 'fs';
-import { S3Client, PutObjectCommand, HeadObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { uploadOnS3 } from '../utils/awsS3.js';
 
-const s3Client = new S3Client({
-    region: 'auto',
-    endpoint: 'https://5aa4c0acb0e25214c16ca695275482a8.r2.cloudflarestorage.com',
-    credentials: {
-        accessKeyId: '047595cdddd6f641d1665c8df6795aee',
-        secretAccessKey: '05e386894068a1329c5a2236b1661c2f46dbc8d0cc81f22d451a2b5f2c0c0ccb',
-    },
-});
 export const createNotice = asyncHandler(async (req, res, next) => {
     const { title, shortDes } = req.body;
 
@@ -30,21 +21,14 @@ export const createNotice = asyncHandler(async (req, res, next) => {
         const file = req.file;
         const fileExtension = path.extname(file.originalname);
 
-        const timestamp = Date.now(); // Get the current timestamp
+        const timestamp = Date.now();
         const uniqueFilename = `noticeImage_${timestamp}${fileExtension}`;
-        // Check if the file already exists for the user
-        const headParams = {
-            Bucket: 'oldschool',
-            Key: uniqueFilename
-        };
-        const params = {
-            Bucket: 'oldschool',
-            Key: uniqueFilename,
-            Body: fs.createReadStream(file.path)
-        };
+        const uploadResponse = await uploadOnS3(file.path);
+        if (!uploadResponse) {
+            throw new Error("Failed to upload file to S3");
+        }
 
-        const data = await s3Client.send(new PutObjectCommand(params));
-        const imageUrl = `https://pub-dc2feb6aa8314296ab626daad5932a49.r2.dev/${uniqueFilename}`;
+        const imageUrl = `${process.env.IMAGE_URI}/${uniqueFilename}`;
 
         // Create a new instance of the Notice model
         const notice = new Notice({
@@ -52,13 +36,10 @@ export const createNotice = asyncHandler(async (req, res, next) => {
             noticeImage: imageUrl,
             shortDec: shortDes
         });
-
-        // Save the notice to the database
         await notice.save();
-
+        console.log(notice)
         return res.status(200).json({
             success: true,
-            notice,
             message: "File uploaded successfully",
             data: {
                 finalImageUrl: imageUrl
@@ -68,7 +49,6 @@ export const createNotice = asyncHandler(async (req, res, next) => {
         console.error("Error uploading file to S3:", error);
         return next(error);
     }
-
 });
 
 

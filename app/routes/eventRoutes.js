@@ -1,5 +1,5 @@
 import express from "express";
-import { createEvent, deleteEvent, updateEvent, getEvents } from "../controllers/eventController.js";
+import { createEvent, deleteEvent, updateEvent, getEvents, getEventsAll } from "../controllers/eventController.js";
 
 import { verifyJWT } from "../middlewares/authMiddleware.js";
 import multer from "multer";
@@ -15,4 +15,5 @@ eventRouter.post("/createEvent", verifyJWT, upload.single('image'), createEvent)
 eventRouter.post("/deleteEvent/:id", deleteEvent);
 eventRouter.patch("/updateEvent/:id", updateEvent);
 eventRouter.get("/getEvents", getEvents);
+eventRouter.get("/getEventsAll", getEventsAll);
 export default eventRouter; 

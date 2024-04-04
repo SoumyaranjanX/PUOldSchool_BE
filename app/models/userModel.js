@@ -41,7 +41,8 @@ const userSchema = new mongoose.Schema({
         minLength: [10, "Please Provide Valide no"]
     },
     imageUrl: {
-        type: String
+        type: String,
+        default: 'https://pub-dc2feb6aa8314296ab626daad5932a49.r2.dev/default%20user%20profile%20image.png'
     },
     hostel: {
         type: String

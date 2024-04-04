@@ -56,26 +56,19 @@ io.on("connection", (socket) => {
 
         const userId = decodedToken._id;
         delete data.accessToken;
-        data.userId = userId
-        createMessage(data)
+        data.userId = userId;
+        
+        const messageId = await createMessage(data); 
+        data._id = messageId;
+
         delete data.userId;
+        data.imageUrl = await getUserProfileImage(userId);  
+             
+        console.log(data);
 
-        const host = socket.handshake.headers.host;
-        // const protocol = socket.handshake.headers.referer.split(':')[0];
-        const protocol = 'http';
-        const image = await getUserProfileImage(userId)
-
-        // console.log(socket)
-        
-        const userProfileImage = `${protocol}://${host}${image}`;
-        data.imageUrl = userProfileImage
-
-        
-        console.log(data)
-
-        socket.broadcast.emit("receive_message", data)
-    })
-})
+        socket.broadcast.emit("receive_message", data);
+    });
+});
 
 server.listen(port, "0.0.0.0", () => {
     console.log(`Socket Server Started at: http://localhost:${port}`)

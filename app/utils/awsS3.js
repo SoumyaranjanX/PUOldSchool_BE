@@ -1,5 +1,6 @@
 import { S3Client, HeadObjectCommand, DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import fs from 'fs';
+import path from 'path';
 
 const s3Client = new S3Client({
   region: 'auto',
@@ -36,6 +37,8 @@ export const uploadOnS3 = async (localFilePath, existingKey = null) => {
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
     const key = `${timestamp}_${randomString}_${path.basename(localFilePath)}`;
+
+    console.log("Key: ", key)
 
     // Upload the file to S3
     const uploadParams = {

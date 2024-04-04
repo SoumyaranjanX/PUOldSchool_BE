@@ -23,7 +23,6 @@ const userRouter = express.Router();
 userRouter.post("/register", Register);
 userRouter.post("/login", Login);
 userRouter.post("/logout", verifyJWT, Logout);
-
 //
 userRouter.post("/forgetpassword", forgotPassword);
 userRouter.put("/resetpassword/:token", resetPassword);

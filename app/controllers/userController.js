@@ -7,16 +7,8 @@ import crypto from "crypto"
 import path from "path";
 import fs from "fs"
 import { fileURLToPath } from 'url';
-// import { HeadObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { uploadOnS3 } from '../utils/awsS3.js';
-// const s3Client = new S3Client({
-//     region: 'auto',
-//     endpoint: process.env.AWS_ENDPOINT,
-//     credentials: {
-//         accessKeyId: process.env.AWS_ACCESSKEYID,
-//         secretAccessKey: process.env.AWS_SECRETACCESSKEY,
-//     },
-// });
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -110,7 +102,6 @@ export const Login = asyncHandler(async (req, res, next) => {
                 "User logged In Successfully"
             )
         )
-
 })
 
 export const Logout = asyncHandler(async (req, res) => {
@@ -199,28 +190,14 @@ export const getUser = asyncHandler(async (req, res, next) => {
     if (!user) {
         return next(new ApiError("User Not Found !!", 400));
     }
-
-    try {
-
-        const imageUrl = user.imageUrl ? user.imageUrl : '/public/assets/profileImages/default.webp' //default
-        // const host = req.get('host');
-        // const protocol = req.protocol;
-        // const finalImageUrl = `${protocol}://${host}${imageUrl}`;
-
-        // user.imageUrl = finalImageUrl
-
-        return res
-            .status(200)
-            .json(
-                new ApiResponse(
-                    200,
-                    user
-                )
-            )
-    }
-    catch (error) {
-        console.log(error)
-    }
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user
+        )
+    )
 })
 
 export const changeProfileImage = asyncHandler(async (req, res, next) => {
@@ -303,13 +280,10 @@ export const updatePersonalDetails = asyncHandler(async (req, res, next) => {
 });
 
 
-// data management
 export const getUserProfileImage = async (userId) => {
     try {
         const user = await User.findById(userId)
-
-        const imageUrl = user.imageUrl ? user.imageUrl : '/public/assets/profileImages/default.webp' //default
-        return imageUrl;
+        return user.imageUrl;
     }
     catch (error) {
         console.log(error)

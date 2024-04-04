@@ -189,7 +189,7 @@ export const getEventsAll = asyncHandler(async (req, res, next) => {
         // const host = req.get('host');
         // const protocol = req.protocol;
         // const eventsWithFinalImageUrl = events.map(event => {
-        //     const imageUrl = event.imageUrl ? event.imageUrl : '/public/assets/profileImages/default.webp'; // Default image URL
+        //     const imageUrl = event.imageUrl ? event.imageUrl : 'https://pub-dc2feb6aa8314296ab626daad5932a49.r2.dev/default%20user%20profile%20image.png'; // Default image URL
         //     const finalImageUrl = `${protocol}://${host}${imageUrl}`;
         //     return { ...event.toObject(), imageUrl: finalImageUrl }; // Merge the event object with the finalImageUrl
         // });

@@ -16,7 +16,7 @@ export const uploadOnS3 = async (localFilePath, existingKey = null) => {
     if (!localFilePath) {
       throw new Error('No local file path provided');
     }
-
+    const fileExtension = path.extname(fileExtension.originalname);
     const fileContent = await fs.promises.readFile(localFilePath);
 
     // If an existing key is provided, delete the existing object before uploading the new one
@@ -36,7 +36,7 @@ export const uploadOnS3 = async (localFilePath, existingKey = null) => {
     // Generate a unique key for the S3 
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
-    const key = `${timestamp}_${randomString}_${path.basename(localFilePath)}`;
+    const key = `${timestamp}_${randomString}_${path.basename(localFilePath)}.${fileExtension}`;
 
     console.log("Key: ", key)
 

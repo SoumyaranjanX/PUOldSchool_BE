@@ -191,13 +191,13 @@ export const getUser = asyncHandler(async (req, res, next) => {
         return next(new ApiError("User Not Found !!", 400));
     }
     return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            user
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                user
+            )
         )
-    )
 })
 
 export const changeProfileImage = asyncHandler(async (req, res, next) => {
@@ -209,11 +209,10 @@ export const changeProfileImage = asyncHandler(async (req, res, next) => {
     if (!req.file) {
         return next(new ApiError("No file uploaded", 400));
     }
-
     try {
         const file = req.file;
         const userId = user.id;
-        const fileExtension = path.extname(file.originalname);
+
 
         const uniqueFilename = `${userId}-Profile${fileExtension}`;
 
@@ -221,7 +220,7 @@ export const changeProfileImage = asyncHandler(async (req, res, next) => {
         const existingKey = user.imageUrl ? path.basename(user.imageUrl) : null;
 
         // Upload the file to AWS S3, replacing the existing file if it exists
-        const uploadResponse = await uploadOnS3(file.path, existingKey);
+        const uploadResponse = await uploadOnS3(file, existingKey);
 
         if (!uploadResponse) {
             throw new Error("Failed to upload file to S3");

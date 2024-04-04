@@ -2,7 +2,6 @@ import { Notice } from "../models/noticeModel.js";
 import { asyncHandler } from "../errorHander/asyncHandler.js";
 import { ApiError } from "../errorHander/ApiError.js";
 import { ApiResponse } from "../errorHander/ApiResponse.js";
-import path from 'path';
 import { uploadOnS3 } from '../utils/awsS3.js';
 
 export const createNotice = asyncHandler(async (req, res, next) => {
@@ -19,18 +18,12 @@ export const createNotice = asyncHandler(async (req, res, next) => {
 
     try {
         const file = req.file;
-        const fileExtension = path.extname(file.originalname);
-
-        const timestamp = Date.now();
-        const uniqueFilename = `noticeImage_${timestamp}${fileExtension}`;
-        const uploadResponse = await uploadOnS3(file, 'noticeImage');
-
+        const { uploadResponse, imageUrl } = await uploadOnS3(file, 'noticeImage');
+        console.log(uploadResponse)
         if (!uploadResponse) {
             return next(new ApiError("Failed to upload file", 400));
 
         }
-
-        const imageUrl = `${process.env.IMAGE_URI}/${uniqueFilename}`;
 
         // Create a new instance of the Notice model
         const notice = new Notice({
@@ -39,7 +32,6 @@ export const createNotice = asyncHandler(async (req, res, next) => {
             shortDec: shortDes
         });
         await notice.save();
-        console.log(notice)
         return res.status(200).json({
             success: true,
             message: "File uploaded successfully",

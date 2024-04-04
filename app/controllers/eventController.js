@@ -2,28 +2,7 @@ import { Event } from '../models/eventModel.js';
 import { asyncHandler } from "../errorHander/asyncHandler.js";
 import { ApiError } from "../errorHander/ApiError.js";
 import { ApiResponse } from "../errorHander/ApiResponse.js";
-import path from "path";
-import fs from "fs"
-import { fileURLToPath } from 'url';
-import { v4 as uuidv4 } from 'uuid';
-
-import { S3Client, PutObjectCommand, HeadObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-
-const s3Client = new S3Client({
-    region: 'auto',
-    endpoint: 'https://5aa4c0acb0e25214c16ca695275482a8.r2.cloudflarestorage.com',
-    credentials: {
-        accessKeyId: '047595cdddd6f641d1665c8df6795aee',
-        secretAccessKey: '05e386894068a1329c5a2236b1661c2f46dbc8d0cc81f22d451a2b5f2c0c0ccb',
-    },
-});
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Controller function to store an event
-
-
+import { uploadOnS3 } from '../utils/awsS3.js';
 export const createEvent = asyncHandler(async (req, res, next) => {
     try {
         const user = req.user;
@@ -41,21 +20,14 @@ export const createEvent = asyncHandler(async (req, res, next) => {
         if (!eventName || !category || !location || !fromDate || !fromTime || !toDate) {
             return next(new ApiError("Volt Type and image are required.", 400));
         }
-
         const file = req.file;
+        const { uploadResponse, imageUrl } = await uploadOnS3(file, 'eventImage');
+        console.log(uploadResponse)
+        if (!uploadResponse) {
+            return next(new ApiError("Failed to upload file", 400));
 
-        const userId = user.id;
-
-        const uniqueFilename = userId + "-Event-" + file.originalname;
-
-        const params = {
-            Bucket: 'oldschool',
-            Key: uniqueFilename,
-            Body: fs.createReadStream(file.path)
-        };
-
-        const data = await s3Client.send(new PutObjectCommand(params));
-        console.log("Successfully uploaded file to S3:", data);
+        }
+        console.log("Successfully uploaded file to S3:");
 
         // Create a new Event instance with the provided data
         const event = new Event({
@@ -68,7 +40,7 @@ export const createEvent = asyncHandler(async (req, res, next) => {
             toDate,
             toTime,
             eventDetails,
-            imageUrl: `https://pub-dc2feb6aa8314296ab626daad5932a49.r2.dev/${uniqueFilename}`
+            imageUrl: imageUrl
         });
 
         // Save the event to the database

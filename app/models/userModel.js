@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Please enter your full name."],
         validate: {
-            validator: function(value) {
+            validator: function (value) {
                 return /^[a-zA-Z\s]*$/.test(value);
             },
             message: "Name must contain only alphabets and spaces."
@@ -67,7 +67,11 @@ const userSchema = new mongoose.Schema({
     },
     resetPasswordToken: {
         type: String
-    }
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false
+    },
 })
 
 userSchema.pre("save", async function (next) {

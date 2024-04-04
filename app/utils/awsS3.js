@@ -11,7 +11,7 @@ const s3Client = new S3Client({
   },
 });
 
-export const uploadOnS3 = async (localFilePath, existingKey = null) => {
+export const uploadOnS3 = async (localFilePath, commingFrom = null, existingKey = null) => {
   try {
     if (!localFilePath) {
       throw new Error('No local file path provided');
@@ -36,7 +36,7 @@ export const uploadOnS3 = async (localFilePath, existingKey = null) => {
     // Generate a unique key for the S3 
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
-    const key = `${timestamp}_${randomString}_${path.basename(localFilePath)}.${fileExtension}`;
+    const key = `${commingFrom}${timestamp}_${randomString}_${path.basename(localFilePath)}.${fileExtension}`;
 
     console.log("Key: ", key)
 

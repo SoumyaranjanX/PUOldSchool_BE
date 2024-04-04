@@ -23,7 +23,8 @@ export const createNotice = asyncHandler(async (req, res, next) => {
 
         const timestamp = Date.now();
         const uniqueFilename = `noticeImage_${timestamp}${fileExtension}`;
-        const uploadResponse = await uploadOnS3(file, commingFrom = changeProfiles);
+        const uploadResponse = await uploadOnS3(file, 'noticeImage');
+
         if (!uploadResponse) {
             return next(new ApiError("Failed to upload file", 400));
 

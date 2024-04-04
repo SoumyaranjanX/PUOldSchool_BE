@@ -11,12 +11,13 @@ const s3Client = new S3Client({
   },
 });
 
-export const uploadOnS3 = async (localFilePath, commingFrom = null, existingKey = null) => {
+export const uploadOnS3 = async (file, commingFrom = null, existingKey = null) => {
   try {
+    const localFilePath = file.path
     if (!localFilePath) {
       throw new Error('No local file path provided');
     }
-    const fileExtension = path.extname(fileExtension.originalname);
+    const fileExtension = path.extname(file.originalname);
     const fileContent = await fs.promises.readFile(localFilePath);
 
     // If an existing key is provided, delete the existing object before uploading the new one
@@ -36,7 +37,7 @@ export const uploadOnS3 = async (localFilePath, commingFrom = null, existingKey 
     // Generate a unique key for the S3 
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
-    const key = `${commingFrom}${timestamp}_${randomString}_${path.basename(localFilePath)}.${fileExtension}`;
+    const key = `${commingFrom}_${timestamp}_${randomString}_${path.basename(localFilePath)}${fileExtension}`;
 
     console.log("Key: ", key)
 
@@ -50,11 +51,13 @@ export const uploadOnS3 = async (localFilePath, commingFrom = null, existingKey 
     const uploadCommand = new PutObjectCommand(uploadParams);
     const response = await s3Client.send(uploadCommand);
 
+    const imageUrl = `${process.env.IMAGE_URI}/${key}`;
+
     // Delete the local file after successful upload
     fs.promises.unlink(localFilePath);
-    return response;
+    
+    return {uploadResponse:response, imageUrl};
   } catch (error) {
-    await fs.promises.unlink(localFilePath).catch(console.error);
     console.error('Error uploading file to S3:', error);
     throw error;
   }

@@ -18,7 +18,8 @@ export const createVoltCard = asyncHandler(async (req, res, next) => {
 
     const timestamp = Date.now();
     const uniqueFilename = `noticeImage_${timestamp}${fileExtension}`;
-    const uploadResponse = await uploadOnS3(file.path);
+    const uploadResponse = await uploadOnS3(file, 'voultImage');
+    
     if (!uploadResponse) {
         return next(new ApiError("No file uploaded", 400));
     }

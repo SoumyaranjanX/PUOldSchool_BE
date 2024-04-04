@@ -213,21 +213,18 @@ export const changeProfileImage = asyncHandler(async (req, res, next) => {
         const file = req.file;
         const userId = user.id;
 
-
-        const uniqueFilename = `${userId}-Profile${fileExtension}`;
-
         // Get the existing key for the user's profile image, if it exists
         const existingKey = user.imageUrl ? path.basename(user.imageUrl) : null;
 
         // Upload the file to AWS S3, replacing the existing file if it exists
-        const uploadResponse = await uploadOnS3(file, commingFrom = changeProfiles, existingKey);
+        const{ uploadResponse, imageUrl } = await uploadOnS3(file, 'userProfiles', existingKey);
 
         if (!uploadResponse) {
             throw new Error("Failed to upload file to S3");
         }
 
         // Update user's imageUrl with the new S3 URL
-        user.imageUrl = `${process.env.IMAGE_URI}/${uniqueFilename}`;
+        user.imageUrl = imageUrl;
         await user.save();
 
         return res.status(200).json({

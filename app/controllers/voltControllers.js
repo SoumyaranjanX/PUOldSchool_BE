@@ -2,46 +2,40 @@ import { Volt } from "../models/voltModel.js";
 import { asyncHandler } from "../errorHander/asyncHandler.js";
 import { ApiError } from "../errorHander/ApiError.js";
 import { ApiResponse } from "../errorHander/ApiResponse.js";
-
-
+import path from 'path';
+import { uploadOnS3 } from '../utils/awsS3.js';
 export const createVoltCard = asyncHandler(async (req, res, next) => {
-    const { voltType, idImage } = req.body;
-
-    // Check if voltType is provided
+    const { voltType } = req.body;
     console.log(voltType)
-    if (!voltType || !idImage) {
+    if (!voltType) {
         return next(new ApiError("Volt Type andimage is required.", 400));
     }
+    if (!req.file) {
+        return next(new ApiError("No file uploaded", 400));
+    }
+    const file = req.file;
+    const fileExtension = path.extname(file.originalname);
 
-    // // Check if the file is uploaded successfully
-    // if (!req.files || !req.files.IdCard) {
-    //     return next(new ApiError("Id Card file is required.", 400));
-    // }
+    const timestamp = Date.now();
+    const uniqueFilename = `noticeImage_${timestamp}${fileExtension}`;
+    const uploadResponse = await uploadOnS3(file.path);
+    if (!uploadResponse) {
+        return next(new ApiError("No file uploaded", 400));
+    }
 
-    // const IdCard = req.files.IdCard;
-
-
-    // const cloudinaryResponse = await cloudinary.uploader.upload(IdCard.tempFilePath, {
-    //     resource_type: "auto"
-    // });
-
-
-    // if (!cloudinaryResponse || cloudinaryResponse.error) {
-    //     console.error(
-    //         "Cloudinary Error:",
-    //         cloudinaryResponse.error || "Unknown Cloudinary error"
-    //     );
-    //     return next(new ApiError("Failed to upload Id Card to Cloudinary", 500));
-    // }
+    const imageUrl = `${process.env.IMAGE_URI}/${uniqueFilename}`;
 
     const volt = await Volt.create({
         user_id: req.user._id,
-        voltType,
-        idImage
+        voltType: voltType,
+        idImage: imageUrl
     });
 
+    await volt.save();
+    console.log(volt)
+
     if (!volt) {
-        return next(new ApiError("Failed to create Volt card.", 500));
+        return next(new ApiError("Failed to create Volt card.", 400));
     }
 
     return res.status(201).json(

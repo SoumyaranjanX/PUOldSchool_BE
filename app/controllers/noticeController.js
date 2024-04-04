@@ -25,7 +25,8 @@ export const createNotice = asyncHandler(async (req, res, next) => {
         const uniqueFilename = `noticeImage_${timestamp}${fileExtension}`;
         const uploadResponse = await uploadOnS3(file.path);
         if (!uploadResponse) {
-            throw new Error("Failed to upload file to S3");
+            return next(new ApiError("Failed to upload file", 400));
+
         }
 
         const imageUrl = `${process.env.IMAGE_URI}/${uniqueFilename}`;

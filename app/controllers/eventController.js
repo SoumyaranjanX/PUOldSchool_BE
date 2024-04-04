@@ -13,8 +13,8 @@ const s3Client = new S3Client({
     region: 'auto',
     endpoint: 'https://5aa4c0acb0e25214c16ca695275482a8.r2.cloudflarestorage.com',
     credentials: {
-      accessKeyId: '047595cdddd6f641d1665c8df6795aee',
-      secretAccessKey: '05e386894068a1329c5a2236b1661c2f46dbc8d0cc81f22d451a2b5f2c0c0ccb',
+        accessKeyId: '047595cdddd6f641d1665c8df6795aee',
+        secretAccessKey: '05e386894068a1329c5a2236b1661c2f46dbc8d0cc81f22d451a2b5f2c0c0ccb',
     },
 });
 
@@ -154,7 +154,7 @@ export const getEvents = asyncHandler(async (req, res, next) => {
 
     try {
 
-        const events = await Event.find({isApproved:true})// Adjust the population fields as needed
+        const events = await Event.find({ isApproved: true })// Adjust the population fields as needed
 
         if (!events) {
             return next(new ApiError('Event not found', 404));
@@ -175,5 +175,33 @@ export const getEvents = asyncHandler(async (req, res, next) => {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+export const getEventsAll = asyncHandler(async (req, res, next) => {
+
+
+    try {
+
+        const events = await Event.find()// Adjust the population fields as needed
+
+        if (!events) {
+            return next(new ApiError('Event not found', 404));
+        }
+        // const host = req.get('host');
+        // const protocol = req.protocol;
+        // const eventsWithFinalImageUrl = events.map(event => {
+        //     const imageUrl = event.imageUrl ? event.imageUrl : '/public/assets/profileImages/default.webp'; // Default image URL
+        //     const finalImageUrl = `${protocol}://${host}${imageUrl}`;
+        //     return { ...event.toObject(), imageUrl: finalImageUrl }; // Merge the event object with the finalImageUrl
+        // });
+
+        return res.status(200).json(
+            new ApiResponse(200, events, 'Event Details Retrieved Successfully.')
+        );
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 
 

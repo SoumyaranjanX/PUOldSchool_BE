@@ -17,7 +17,6 @@ const urgentMessage = new mongoose.Schema({
         type: String,
         maxLength: [50, "please Atmost 50 words  !!"],
     }
-
-})
+}, { timestamps: true });
 
 export const UrgentMessage = mongoose.model("UrgentMessage", urgentMessage)

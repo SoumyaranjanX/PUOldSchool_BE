@@ -26,6 +26,6 @@ const busSchema = new mongoose.Schema(
             },
             "required": ["towardSJ", "towardLibrary"],
         }
-    }
-)
+    },{ timestamps: true }
+);
 export const Bus = mongoose.model("Bus", busSchema);

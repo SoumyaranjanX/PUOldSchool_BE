@@ -17,6 +17,6 @@ const voltSchema = new mongoose.Schema({
 
     }
 
-})
+}, { timestamps: true })
 
 export const Volt = mongoose.model("Volt", voltSchema)

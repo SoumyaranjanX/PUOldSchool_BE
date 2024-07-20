@@ -26,6 +26,34 @@ const createMessage = async (data) => {
         throw error;
     }
 };
+const createThreadMessage = async (data) => {
+    try {
+        const { threadId, message, userId } = data;
+
+        const existingThread = await ThreadChat.findOne({ _id:threadId, participants: userId });
+        if (!existingThread) {
+            return next(new ApiError('No Thread exists', 400));
+        }
+
+        // Create a new thread message
+        const newThreadMessage = new ThreadMessage({
+            thread: threadId,
+            sender: userId, // The sender of the thread message is the current user
+            message: message
+        });
+
+        // Save the new thread message to the database
+        await newThreadMessage.save();
+
+        // Update the lastMessage field of the ThreadChat document
+        await ThreadChat.findByIdAndUpdate(threadId, { lastMessage: newThreadMessage._id });
+        return newThreadMessage._id;
+
+    } catch (error) {
+        console.error('Error saving message:', error);
+        throw error;
+    }
+};
 
 const fetchMessages = async (req, res) => {
     const pageNumber = req.query.pageNumber
@@ -130,11 +158,13 @@ const getMyThreads = asyncHandler(async (req, res, next) => {
         const { myInitiated, onMyMessages } = req.body;
 
         // Define filter criteria based on filter parameters
-        const filter = {};
-        if (myInitiated) {
-            filter['participants'] = userId;
+        const filter = { participants: userId };
+
+        if (myInitiated && !onMyMessages) {
+            filter['message.sender'] = { $ne: userId };
         }
-        if (onMyMessages) {
+
+        if (onMyMessages && !myInitiated) {
             filter['message.sender'] = userId;
         }
 
@@ -148,8 +178,6 @@ const getMyThreads = asyncHandler(async (req, res, next) => {
                 select: 'imageUrl _id'
             }
         });
-
-        console.log(threads)
 
         // Respond with the list of threads
         const responseData = new ApiResponse(200, { threads }, 'Threads retrieved successfully');
@@ -217,6 +245,7 @@ export {
     createMessage,
     fetchMessages,
     createThread,
+    createThreadMessage,
     getMyThreads,
     deleteThreadAndMessages,
     fetchThreadMessages

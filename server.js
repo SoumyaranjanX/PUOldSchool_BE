@@ -10,7 +10,7 @@ import path from "path";
 import cors from "cors"
 import http from "http"
 import { Server } from "socket.io";
-import { createMessage } from "./app/controllers/chatControoler.js";
+import { createMessage, createThreadMessage } from "./app/controllers/chatControoler.js";
 import { getLoggedInUserId } from './app/utils/functions.js';
 import jwt from "jsonwebtoken"
 import { getUserProfileImage } from './app/controllers/userController.js';
@@ -53,7 +53,6 @@ io.on("connection", (socket) => {
 
     socket.on("send_message", async (data) => {
         const decodedToken = jwt.verify(data.accessToken, process.env.ACCESS_TOKEN_SECRET);
-
         const userId = decodedToken._id;
         delete data.accessToken;
         data.userId = userId;
@@ -63,10 +62,32 @@ io.on("connection", (socket) => {
 
         delete data.userId;
         data.imageUrl = await getUserProfileImage(userId);  
-             
-        console.log(data);
-
         socket.broadcast.emit("receive_message", data);
+    });
+
+    socket.on('join_room', (threadId) => {
+        socket.join(threadId);
+        console.log(`User joined room: ${threadId}`);
+    });
+
+    socket.on('leave_room', (threadId) => {
+        socket.leave(threadId);
+        console.log(`User left room: ${threadId}`);
+    });
+
+    socket.on('send_private_message', async (data) => {
+        const decodedToken = jwt.verify(data.accessToken, process.env.ACCESS_TOKEN_SECRET);
+        const userId = decodedToken._id;
+        delete data.accessToken;
+        data.userId = userId;
+
+        const messageId = await createThreadMessage(data);
+        data._id = messageId;
+
+        delete data.userId;
+        data.imageUrl = await getUserProfileImage(userId);
+
+        socket.to(data.threadId).emit("private_message", data);
     });
 });
 

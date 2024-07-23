@@ -61,3 +61,20 @@ export const getNotice = asyncHandler(async (req, res, next) => {
         return next(new ApiError("Failed to create notice: " + error.message, 500));
     }
 });
+
+export const deleteNotice = asyncHandler(async (req, res, next) => {
+    try {
+        const noticeId = req.params.id;
+        const notice = await Notice.findByIdAndDelete(noticeId);
+
+        if (!notice) {
+            return next(new ApiError("Notice does not exist", 404));
+        }
+        
+        return res.status(200).json(
+            new ApiResponse(200, notice, "Notice deleted successfully.")
+        );
+    } catch (error) {
+        return next(new ApiError("Failed to delete notice: " + error.message, 500));
+    }
+});

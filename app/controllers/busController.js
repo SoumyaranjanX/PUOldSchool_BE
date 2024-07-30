@@ -33,7 +33,6 @@ export const getBusTimings = async (req, res, next) => {
 
         console.log(stoppage)
         if (!stoppage || stoppage === "") {
-            return res.status(400).json({ message: 'Please Select Bus Stoppage' });
         }
 
         // Find bus timings based on stoppage and direction with case-insensitive comparison
@@ -48,13 +47,13 @@ export const getBusTimings = async (req, res, next) => {
                 towardLibrary: result.timings.towardLibrary
             };
             return res
-            .status(200)
-            .json(
-                new ApiResponse(
-                    200,
-                    response
+                .status(200)
+                .json(
+                    new ApiResponse(
+                        200,
+                        response
+                    )
                 )
-            )
         } else {
             console.log('Stoppage not found:', stoppage);
             return next(new ApiError("Stoppage not found !!", 200));
